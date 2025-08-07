@@ -156,7 +156,7 @@ module.exports = {
     // Set bot presence
     await bot.user.setPresence({
       activities: [{ 
-        name: 'Itamori - Abus /itamori', 
+        name: '/itamori', 
         type: ActivityType.Playing, 
         url: ''
       }], 
