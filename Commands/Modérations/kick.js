@@ -110,23 +110,39 @@ if (public) {
   }
 
   try {
-    await user.kick(reason);
-    message.reply(`<@${user.id}> a été kick pour ${reason}`);
-            const embed = new Discord.EmbedBuilder()
-          .setColor(config.color)
-          .setDescription(`<@${message.author.id}> a kick <@${user.id}> (${user.id}) pour ${reason}`)
-          .setTimestamp();
+    // S'assurer que la raison n'est pas vide
+    const formattedReason = reason || 'Aucune raison spécifiée';
     
-        sendLog(message.guild, embed, 'modlog');
+    await user.kick(formattedReason);
+    
+    // Enregistrer la sanction dans la base de données avant de répondre à l'utilisateur
+    db.run(
+      'INSERT INTO sanctions (userId, raison, date, guild) VALUES (?, ?, ?, ?)', 
+      [user.id, `Kick - ${formattedReason}`, new Date().toISOString(), message.guild.id],
+      function(err) {
+        if (err) {
+          console.error('Erreur lors de l\'ajout de la sanction :', err);
+          return message.reply("Une erreur est survenue lors de l'enregistrement de la sanction.");
+        }
+      }
+    );
+    
+    // Répondre à l'utilisateur
+    message.reply(`<@${user.id}> a été kick pour : ${formattedReason}`);
+    
+    // Envoyer le log
+    const embed = new Discord.EmbedBuilder()
+      .setColor(config.color)
+      .setDescription(`<@${message.author.id}> a kick <@${user.id}> (${user.id})`)
+      .addFields(
+        { name: 'Raison', value: formattedReason }
+      )
+      .setTimestamp();
+    
+    sendLog(message.guild, embed, 'modlog');
+    
   } catch (error) {
     console.error('Erreur lors de l\'expulsion :', error);
-    return message.reply("Une erreur est survenue.");
+    return message.reply("Une erreur est survenue lors de l'expulsion.");
   }
-
-  db.run(`INSERT INTO sanctions (userId, raison, date, guild) VALUES (?, ?, ?, ?)`, [user.id, reason + ' - Kick', new Date().toISOString(), message.guild.id], function(err) {
-    if (err) {
-      console.error('Erreur lors de l\'ajout de la sanction :', err);
-      return message.reply("Une erreur est survenue.");
-    }
-  });
 };

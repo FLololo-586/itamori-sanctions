@@ -139,10 +139,12 @@ if (public) {
       const end = Math.min(start + ITEMS_PER_PAGE, rows.length);
 
       for (let i = start; i < end; i++) {
+        // S'assurer que la raison n'est jamais undefined
+        const reason = rows[i].raison || 'Aucune raison spécifiée';
         embed.addFields({
           name: `**Sanction #${i + 1}**`,
           value: `**Date** : ${formatDistanceToNow(parseISO(rows[i].date), { locale: fr, addSuffix: true })}\n` +
-                 `**Raison** : ${rows[i].reason}`
+                 `**Raison** : ${reason}`
         });
       }
 

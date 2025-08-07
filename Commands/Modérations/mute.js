@@ -242,17 +242,32 @@ if (public) {
         bot.muteTimeouts.set(`${message.guild.id}-${member.id}`, unmuteTimeout);
       }
       
-      message.reply(`<@${member.id}> a été mute ${durationText || 'indéfiniment'}.`);
-      const embed = new Discord.EmbedBuilder()
-        .setColor(config.color)
-        .setDescription(`<@${message.author.id}> a mute <@${member.id}> (${member.id}) ${durationText || 'indéfiniment'}`)
-        .addFields(
-          { name: 'Durée', value: durationText || 'Indéfinie', inline: true },
-          { name: 'Fin du mute', value: unmuteTime ? `<t:${Math.floor(unmuteTime / 1000)}:R>` : 'Jamais', inline: true }
-        )
-        .setTimestamp();
-      
-      sendLog(message.guild, embed, 'modlog');
+      // Récupérer la raison si elle est fournie (tous les arguments après la durée)
+    const reason = args.slice(2).join(' ') || 'Aucune raison spécifiée';
+    
+    // Enregistrer la sanction dans la base de données
+    db.run(
+      'INSERT INTO sanctions (userId, raison, date, guild) VALUES (?, ?, ?, ?)', 
+      [member.id, `Mute ${durationText} - ${reason}`, new Date().toISOString(), message.guild.id],
+      function(err) {
+        if (err) {
+          console.error('Erreur lors de l\'enregistrement de la sanction :', err);
+        }
+      }
+    );
+    
+    message.reply(`<@${member.id}> a été mute ${durationText || 'indéfiniment'}.`);
+    const embed = new Discord.EmbedBuilder()
+      .setColor(config.color)
+      .setDescription(`<@${message.author.id}> a mute <@${member.id}> (${member.id}) ${durationText || 'indéfiniment'}`)
+      .addFields(
+        { name: 'Durée', value: durationText || 'Indéfinie', inline: true },
+        { name: 'Fin du mute', value: unmuteTime ? `<t:${Math.floor(unmuteTime / 1000)}:R>` : 'Jamais', inline: true },
+        { name: 'Raison', value: reason || 'Aucune raison spécifiée' }
+      )
+      .setTimestamp();
+    
+    sendLog(message.guild, embed, 'modlog');
     } catch (error) {
       console.error('Erreur lors du mute :', error);
       return message.reply("Impossible de mute. Vérifiez que le bot a les permissions nécessaires.");
