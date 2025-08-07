@@ -81,21 +81,42 @@ const checkActiveMutes = async (bot) => {
           try {
             const memberToUnmute = await guild.members.fetch(mute.user_id).catch(() => null);
             if (memberToUnmute && memberToUnmute.roles.cache.has(mutedRole.id)) {
+              // Get the current mute record to ensure we have the latest data
+              const currentMute = await new Promise((resolve, reject) => {
+                db.get('SELECT * FROM mutes WHERE user_id = ? AND guild_id = ?', 
+                  [mute.user_id, mute.guild_id],
+                  (err, row) => err ? reject(err) : resolve(row || null)
+                );
+              });
+              
+              if (!currentMute) {
+                console.log('No mute record found for user', mute.user_id);
+                return;
+              }
+              
               // Remove muted role
               await memberToUnmute.roles.remove(mutedRole);
               
               // Restore previous roles if they exist
-              if (mute.roles) {
+              if (currentMute.roles) {
                 try {
-                  const rolesToRestore = JSON.parse(mute.roles);
+                  const rolesToRestore = JSON.parse(currentMute.roles);
+                  console.log('Roles to restore:', rolesToRestore);
+                  
+                  // Filter out any roles that no longer exist
                   const validRoles = rolesToRestore.filter(roleId => 
                     guild.roles.cache.has(roleId) && 
                     roleId !== guild.id && // Don't add @everyone
                     roleId !== mutedRole.id // Don't add muted role back
                   );
                   
+                  console.log('Valid roles to restore:', validRoles);
+                  
                   if (validRoles.length > 0) {
                     await memberToUnmute.roles.add(validRoles);
+                    console.log(`Restored ${validRoles.length} roles to user ${mute.user_id}`);
+                  } else {
+                    console.log('No valid roles to restore for user', mute.user_id);
                   }
                 } catch (error) {
                   console.error('Error restoring roles on auto-unmute:', error);

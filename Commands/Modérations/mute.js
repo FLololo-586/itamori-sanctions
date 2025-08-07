@@ -186,7 +186,35 @@ if (public) {
           try {
             const memberToUnmute = await message.guild.members.fetch(member.id).catch(() => null);
             if (memberToUnmute && memberToUnmute.roles.cache.has(mutedRole.id)) {
+              // Get the mute record from database to restore roles
+              const muteRecord = await new Promise((resolve, reject) => {
+                db.get('SELECT * FROM mutes WHERE user_id = ? AND guild_id = ?', 
+                  [member.id, message.guild.id],
+                  (err, row) => err ? reject(err) : resolve(row || null)
+                );
+              });
+              
+              // Remove muted role
               await memberToUnmute.roles.remove(mutedRole);
+              
+              // Restore previous roles if they exist
+              if (muteRecord?.roles) {
+                try {
+                  const rolesToRestore = JSON.parse(muteRecord.roles);
+                  // Filter out any roles that no longer exist
+                  const validRoles = rolesToRestore.filter(roleId => 
+                    message.guild.roles.cache.has(roleId) && 
+                    roleId !== message.guild.id && // Don't add @everyone
+                    roleId !== mutedRole.id // Don't add muted role back
+                  );
+                  
+                  if (validRoles.length > 0) {
+                    await memberToUnmute.roles.add(validRoles);
+                  }
+                } catch (error) {
+                  console.error('Error restoring roles on auto-unmute:', error);
+                }
+              }
               
               // Delete from mutes table
               await new Promise((resolve, reject) => {
