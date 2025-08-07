@@ -1,6 +1,7 @@
 const db = require('../../Events/loadDatabase');
 const Discord = require('discord.js');
 const config = require('../../config.json');
+const { EmbedBuilder } = require('discord.js');
 
 exports.help = {
   name: 'perms',

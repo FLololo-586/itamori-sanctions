@@ -1,6 +1,7 @@
 const { ChannelType, PermissionFlagsBits, MessageEmbed } = require('discord.js');
 const db = require('../../Events/loadDatabase');
 const config = require('../../config.json');
+const { EmbedBuilder } = require('discord.js');
 
 exports.help = {
   name: 'modlog',

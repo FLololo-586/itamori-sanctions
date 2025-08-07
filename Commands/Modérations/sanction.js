@@ -1,4 +1,5 @@
 const Discord = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 const db = require('../../Events/loadDatabase');
 const { formatDistanceToNow, parseISO, isToday, isYesterday } = require('date-fns');
 const { fr } = require('date-fns/locale');
@@ -129,7 +130,7 @@ if (public) {
     let currentPage = 1;
 
     const generateEmbed = (page) => {
-      const embed = new Discord.EmbedBuilder()
+      const embed = new EmbedBuilder()
         .setTitle(`Sanctions de ${user.tag}`)
         .setColor(config.color)
         .setFooter({ text: `Page ${page} sur ${totalPages}` });

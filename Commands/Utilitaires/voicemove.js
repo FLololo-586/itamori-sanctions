@@ -1,4 +1,5 @@
 const config = require('../../config.json');
+const { EmbedBuilder } = require('discord.js');
 
 exports.help = {
   name: 'voicemove',

@@ -2,6 +2,7 @@ const { EmbedBuilder } = require('discord.js');
 const db = require('../../Events/loadDatabase'); 
 const config = require('../../config.json');
 
+
 exports.help = {
   name: 'servers',
   description: 'Permet de voir dans quelle serveur le bot est présent',

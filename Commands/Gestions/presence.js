@@ -1,5 +1,6 @@
 const { Client, GatewayIntentBits } = require('discord.js');
 const config = require('../../config.json');
+const { EmbedBuilder } = require('discord.js');
 
 exports.help = {
   name: 'presence',
