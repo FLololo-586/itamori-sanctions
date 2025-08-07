@@ -117,7 +117,7 @@ if (public) {
   const user = message.mentions.users.first() || await bot.users.fetch(args[0]).catch(() => null);
   if (!user) return message.reply("L'utilisateur n'existe pas");
 
-  db.all('SELECT id, reason, date FROM sanctions WHERE userId = ? AND guild = ? ORDER BY date DESC', [user.id, message.guild.id], async (err, rows) => {
+  db.all('SELECT id, raison, date FROM sanctions WHERE userId = ? AND guild = ? ORDER BY date DESC', [user.id, message.guild.id], async (err, rows) => {
     if (err) {
       console.error('Erreur lors de la récupération des sanctions:', err);
       return;
