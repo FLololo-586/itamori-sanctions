@@ -108,7 +108,7 @@ if (public) {
     .setTitle('Serveurs')
     .setDescription(guildList)
     .setColor(config.color)
-    .setFooter({ text: 'Itamori - Sanction'});
+    .setFooter({ text: 'Itamori - Abus'});
 
   return message.reply({ embeds: [embed], allowedMentions: { repliedUser: false } });
 };

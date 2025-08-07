@@ -156,9 +156,9 @@ module.exports = {
     // Set bot presence
     await bot.user.setPresence({
       activities: [{ 
-        name: 'Itamori - Sanction', 
-        type: ActivityType.Streaming, 
-        url: 'https://twitch.tv/4wipyk'
+        name: 'Itamori - Abus /itamori', 
+        type: ActivityType.Playing, 
+        url: ''
       }], 
       status: 'online'
     });

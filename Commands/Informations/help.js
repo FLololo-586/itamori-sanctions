@@ -125,7 +125,7 @@ if (public) {
               { name: 'Alias', value: command.help.aliases ? command.help.aliases.join(', ') : 'Aucun' }
             )
             .setColor(config.color)
-            .setFooter({ text: "Itamori - Sanction" });
+            .setFooter({ text: "Itamori - Abus" });
           await message.reply({ embeds: [embed], allowedMentions: { repliedUser: false } });
           commandFound = true;
           break;
@@ -138,7 +138,7 @@ if (public) {
         .setTitle('Erreur')
         .setDescription(`La commande \`${args[0]}\` n'existe pas.`)
         .setColor('#6495ED')
-        .setFooter({ text: "Itamori - Sanction" });
+        .setFooter({ text: "Itamori - Abus" });
       await message.reply({ embeds: [notFoundEmbed], allowedMentions: { repliedUser: false } });
     }
     return;
@@ -159,7 +159,7 @@ if (public) {
       .setTitle(`${category}`)
       .setDescription(`Pour avoir de l’aide sur une commande, utilisez \`${config.prefix}help <commande>\`\n\n${commands.join('\n') || "C'est vide par ici..."}`)
       .setColor(config.color)
-      .setFooter({ text: "Itamori - Sanction" });
+      .setFooter({ text: "Itamori - Abus" });
   });
 
   const selectMenu = new ActionRowBuilder()

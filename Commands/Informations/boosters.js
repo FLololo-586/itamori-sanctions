@@ -105,7 +105,7 @@ if (public) {
         .setTitle('Liste des Boosters')
         .setDescription(boosters.map(booster => `<@${booster.user.id}> - ${booster.user.id}`).join('\n'))
         .setColor(config.color)
-        .setFooter({ text: 'Itamori - Sanction' });
+        .setFooter({ text: 'Itamori - Abus' });
 
     return message.reply({ embeds: [embed], allowedMentions: { repliedUser: false } });
 };

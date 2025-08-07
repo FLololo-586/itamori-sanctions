@@ -106,7 +106,7 @@ if (public) {
     .setTitle('Liste des bannissements')
     .setDescription(bans.map(ban => `<@${ban.user.id}> - ${ban.user.tag}`).join('\n'))
     .setColor(config.color)
-    .setFooter({ text: 'Itamori - Sanction' });
+    .setFooter({ text: 'Itamori - Abus' });
 
   return message.reply({ embeds: [embed], allowedMentions: { repliedUser: false } });
 };
