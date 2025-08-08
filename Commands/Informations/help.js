@@ -5,11 +5,9 @@ const db = require('../../Events/loadDatabase');
 const config = require('../../config.json');
 
 const categories = [
-  'Utilitaires',
   'Modérations',
-  'Gestions',
-  'Logs',
-  'Paramètres',
+  'Gestions-Bot',
+  'Paramètres-Bot',
   'Informations'
 ];
 
