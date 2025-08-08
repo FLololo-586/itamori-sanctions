@@ -180,10 +180,10 @@ if (public) {
     const rolesJson = JSON.stringify(userRoles);
     
     try {
-      // Store mute info in database with roles
+      // Store or update mute info in database with roles
       await new Promise((resolve, reject) => {
         db.run(
-          'INSERT INTO mutes (user_id, guild_id, end_time, roles) VALUES (?, ?, ?, ?)',
+          'INSERT OR REPLACE INTO mutes (user_id, guild_id, end_time, roles) VALUES (?, ?, ?, ?)',
           [member.id, message.guild.id, unmuteTime || null, rolesJson],
           (err) => err ? reject(err) : resolve()
         );
