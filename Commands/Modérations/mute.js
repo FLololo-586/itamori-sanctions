@@ -96,7 +96,15 @@ if (public) {
     const noacces = new Discord.EmbedBuilder()
     .setDescription("Vous n'avez pas la permission d'utiliser cette commande.")
     .setColor(config.color);
-  return message.reply({embeds: [noacces], allowedMentions: { repliedUser: true }});
+    return message.reply({embeds: [noacces], allowedMentions: { repliedUser: true }});
+  }
+
+  // Check if command is used in the correct channel
+  if (message.channel.id !== config.sanctionChannelId) {
+    const wrongChannel = new Discord.EmbedBuilder()
+      .setDescription(`❌ Cette commande ne peut être utilisée que dans le salon <#${config.sanctionChannelId}>.`)
+      .setColor('#ff0000');
+    return message.reply({ embeds: [wrongChannel] });
   }
 
   const member = message.mentions.members.first() || await message.guild.members.fetch(args[0]).catch(() => null);
@@ -146,12 +154,15 @@ if (public) {
             break;
           case 'h': 
             durationMs = value * 60 * 60 * 1000;
+            // Check if duration exceeds 45 minutes (45 * 60 * 1000 = 2,700,000 ms)
+            if (durationMs > 2700000) {
+              return message.reply("❌ La durée maximale de mute est de 45 minutes.");
+            }
             durationText = `pour ${value} heure${value > 1 ? 's' : ''}`; 
             break;
           case 'd': 
-            durationMs = value * 24 * 60 * 60 * 1000;
-            durationText = `pour ${value} jour${value > 1 ? 's' : ''}`; 
-            break;
+            // Days are not allowed as it exceeds 45 minutes
+            return message.reply("❌ La durée maximale de mute est de 45 minutes. Utilisez des heures (h) ou des minutes (m).");
         }
         
         unmuteTime = Date.now() + durationMs;
