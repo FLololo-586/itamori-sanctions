@@ -56,10 +56,22 @@ exports.run = async (bot, message, args, config) => {
   const minutes = Math.floor((totalSeconds % 3600) / 60);
   const seconds = totalSeconds % 60;
 
+  // Calcul de la date et l'heure de démarrage
+  const startTime = new Date(Date.now() - totalSeconds * 1000);
+  const startDate = startTime.toLocaleDateString('fr-FR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit'
+  });
+
   const uptimeString = `\🕒 **Uptime**: ${days} jours, ${hours} heures, ${minutes} minutes, ${seconds} secondes`;
+  const startTimeString = `\📅 **Démarrage**: ${startDate}`;
   
   const embed = new EmbedBuilder()
-    .setDescription(uptimeString)
+    .setDescription(`${uptimeString}\n${startTimeString}`)
     .setColor(config.color);
 
   message.reply({ embeds: [embed], allowedMentions: { repliedUser: false } });
