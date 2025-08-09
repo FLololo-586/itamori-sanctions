@@ -152,6 +152,26 @@ if (public) {
       }
     }
     
+    // Envoi du message à l'utilisateur en MP
+    try {
+      const userDM = await member.user.createDM();
+      const dmEmbed = new EmbedBuilder()
+        .setColor('#00FF00') // Vert pour un unmute
+        .setTitle('🔊 Vous avez été unmute')
+        .setDescription(`Vous avez été unmute sur le serveur **${message.guild.name}**`)
+        .addFields(
+          { name: 'Modérateur', value: `${message.author.tag} (${message.author.id})`, inline: true },
+          { name: 'Date', value: `<t:${Math.floor(Date.now() / 1000)}:F>`, inline: true },
+          { name: 'Rôles restaurés', value: muteRecord?.roles ? JSON.parse(muteRecord.roles).length.toString() : 'Aucun', inline: true }
+        )
+        .setTimestamp();
+      
+      await userDM.send({ embeds: [dmEmbed] });
+    } catch (error) {
+      console.error(`Impossible d'envoyer un MP à ${member.user.tag}:`, error);
+      // On continue même si l'envoi du MP échoue
+    }
+
     // Remove from mutes table
     await new Promise((resolve, reject) => {
       db.run('DELETE FROM mutes WHERE user_id = ? AND guild_id = ?', 
@@ -160,16 +180,22 @@ if (public) {
       );
     });
     
+    // Message de confirmation dans le salon
     message.reply(`<@${member.id}> a été unmute et ses rôles ont été restaurés.`);
-    const embed = new Discord.EmbedBuilder()
+    
+    // Log dans le salon de modération
+    const logEmbed = new EmbedBuilder()
       .setColor(config.color)
-      .setDescription(`<@${message.author.id}> a unmute <@${member.id}> (${member.id})`)
+      .setTitle('🔊 Unmute')
       .addFields(
-        { name: 'Rôles restaurés', value: muteRecord?.roles ? JSON.parse(muteRecord.roles).length.toString() : 'Aucun', inline: true }
+        { name: 'Utilisateur', value: `${member.user.tag} (${member.id})`, inline: true },
+        { name: 'Modérateur', value: `${message.author.tag} (${message.author.id})`, inline: true },
+        { name: 'Rôles restaurés', value: muteRecord?.roles ? JSON.parse(muteRecord.roles).length.toString() : 'Aucun', inline: true },
+        { name: 'Date', value: `<t:${Math.floor(Date.now() / 1000)}:F>`, inline: true }
       )
       .setTimestamp();
     
-    sendLog(message.guild, embed, 'modlog');
+    sendLog(message.guild, logEmbed, 'modlog');
   } catch (error) {
     console.error('Erreur lors du unmute :', error);
     return message.reply("Impossible de unmute. Vérifiez que le bot a les permissions nécessaires.");

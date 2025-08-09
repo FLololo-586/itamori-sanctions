@@ -254,37 +254,63 @@ if (public) {
       }
       
       // Récupérer la raison si elle est fournie (tous les arguments après la durée)
-    const reason = args.slice(2).join(' ') || 'Aucune raison spécifiée';
-    
-    // Enregistrer la sanction dans la base de données
-    db.run(
-      'INSERT INTO sanctions (userId, raison, date, guild) VALUES (?, ?, ?, ?)', 
-      [member.id, `Mute ${durationText} - ${reason}`, new Date().toISOString(), message.guild.id],
-      function(err) {
-        if (err) {
-          console.error('Erreur lors de l\'enregistrement de la sanction :', err);
+      const reason = args.slice(2).join(' ') || 'Aucune raison spécifiée';
+      
+      // Enregistrer la sanction dans la base de données
+      db.run(
+        'INSERT INTO sanctions (userId, raison, date, guild) VALUES (?, ?, ?, ?)', 
+        [member.id, `Mute ${durationText} - ${reason}`, new Date().toISOString(), message.guild.id],
+        function(err) {
+          if (err) {
+            console.error('Erreur lors de l\'enregistrement de la sanction :', err);
+          }
         }
+      );
+      
+      // Envoi du message à l'utilisateur en MP
+      try {
+        const userDM = await member.user.createDM();
+        const dmEmbed = new EmbedBuilder()
+          .setColor('#FF0000') // Rouge pour un mute
+          .setTitle('🔇 Vous avez été mute')
+          .setDescription(`Vous avez été mute sur le serveur **${message.guild.name}**`)
+          .addFields(
+            { name: 'Durée', value: durationText || 'Indéfinie', inline: true },
+            { name: 'Fin du mute', value: unmuteTime ? `<t:${Math.floor(unmuteTime / 1000)}:F>` : 'Jamais', inline: true },
+            { name: 'Raison', value: reason || 'Aucune raison spécifiée' },
+            { name: 'Modérateur', value: `${message.author.tag} (${message.author.id})` }
+          )
+          .setTimestamp();
+        
+        await userDM.send({ embeds: [dmEmbed] });
+      } catch (error) {
+        console.error(`Impossible d'envoyer un MP à ${member.user.tag}:`, error);
+        // On continue même si l'envoi du MP échoue
       }
-    );
-    
-    message.reply(`<@${member.id}> a été mute ${durationText || 'indéfiniment'}.`);
-    const embed = new Discord.EmbedBuilder()
-      .setColor(config.color)
-      .setDescription(`<@${message.author.id}> a mute <@${member.id}> (${member.id}) ${durationText || 'indéfiniment'}`)
-      .addFields(
-        { name: 'Durée', value: durationText || 'Indéfinie', inline: true },
-        { name: 'Fin du mute', value: unmuteTime ? `<t:${Math.floor(unmuteTime / 1000)}:R>` : 'Jamais', inline: true },
-        { name: 'Raison', value: reason || 'Aucune raison spécifiée' }
-      )
-      .setTimestamp();
-    
-    sendLog(message.guild, embed, 'modlog');
+      
+      // Message de confirmation dans le salon
+      message.reply(`<@${member.id}> a été mute ${durationText || 'indéfiniment'}.`);
+      
+      // Log dans le salon de modération
+      const logEmbed = new EmbedBuilder()
+        .setColor(config.color)
+        .setTitle('🔇 Mute')
+        .addFields(
+          { name: 'Utilisateur', value: `${member.user.tag} (${member.id})`, inline: true },
+          { name: 'Modérateur', value: `${message.author.tag} (${message.author.id})`, inline: true },
+          { name: 'Durée', value: durationText || 'Indéfinie', inline: true },
+          { name: 'Fin du mute', value: unmuteTime ? `<t:${Math.floor(unmuteTime / 1000)}:F>` : 'Jamais', inline: true },
+          { name: 'Raison', value: reason || 'Aucune raison spécifiée' }
+        )
+        .setTimestamp();
+      
+      sendLog(message.guild, logEmbed, 'modlog');
     } catch (error) {
       console.error('Erreur lors du mute :', error);
       return message.reply("Impossible de mute. Vérifiez que le bot a les permissions nécessaires.");
     }
   } catch (error) {
-    console.error('Erreur lors du mute :', error);
-    return message.reply("Impossible de mute. Vérifiez que le bot a les permissions nécessaires.");
+    console.error('Erreur générale lors du mute :', error);
+    return message.reply("Une erreur est survenue lors du mute.");
   }
 };

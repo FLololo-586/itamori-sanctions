@@ -110,18 +110,48 @@ if (public) {
     return message.reply("Veuillez fournir une raison.");
   }
 
-  db.run(`INSERT INTO sanctions (userId, raison, date, guild) VALUES (?, ?, ?, ?)`, [user.id, reason, new Date().toISOString(), message.guild.id], function(err) {
+  const timestamp = new Date().toISOString();
+  db.run(`INSERT INTO sanctions (userId, raison, date, guild) VALUES (?, ?, ?, ?)`, [user.id, reason, timestamp, message.guild.id], async function(err) {
     if (err) {
       console.error(err);
-      return 
+      return;
     }
 
-    message.reply(`<@${user.id}> a été warn pour: ${reason}`);
-            const embed = new Discord.EmbedBuilder()
-          .setColor(config.color)
-          .setDescription(`<@${message.author.id}> a warn <@${user.id}> (${user.id}) pour ${reason}`)
-          .setTimestamp();
+    // Envoi du message à l'utilisateur en MP
+    try {
+      const userDM = await user.createDM();
+      const dmEmbed = new EmbedBuilder()
+        .setColor('#FFA500') // Orange pour un avertissement
+        .setTitle('⚠️ Vous avez reçu un avertissement')
+        .addFields(
+          { name: 'Serveur', value: message.guild.name, inline: true },
+          { name: 'Modérateur', value: `${message.author.tag} (${message.author.id})`, inline: true },
+          { name: 'Raison', value: reason || 'Aucune raison fournie' },
+          { name: 'Date', value: `<t:${Math.floor(new Date(timestamp).getTime() / 1000)}:F>`, inline: true }
+        )
+        .setTimestamp();
+      
+      await userDM.send({ embeds: [dmEmbed] });
+    } catch (error) {
+      console.error(`Impossible d'envoyer un MP à ${user.tag}:`, error);
+      // On continue même si l'envoi du MP échoue
+    }
+
+    // Message de confirmation dans le salon
+    message.reply(`<@${user.id}> a été averti pour: ${reason}`);
     
-        sendLog(message.guild, embed, 'modlog');
+    // Log dans le salon de modération
+    const logEmbed = new EmbedBuilder()
+      .setColor(config.color)
+      .setTitle('⚠️ Avertissement')
+      .addFields(
+        { name: 'Utilisateur', value: `${user.tag} (${user.id})`, inline: true },
+        { name: 'Modérateur', value: `${message.author.tag} (${message.author.id})`, inline: true },
+        { name: 'Raison', value: reason || 'Aucune raison fournie' },
+        { name: 'Date', value: `<t:${Math.floor(new Date(timestamp).getTime() / 1000)}:F>`, inline: true }
+      )
+      .setTimestamp();
+    
+    sendLog(message.guild, logEmbed, 'modlog');
   });
 };
